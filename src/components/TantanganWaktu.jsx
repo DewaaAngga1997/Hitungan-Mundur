@@ -1,37 +1,45 @@
 import { useRef, useState } from "react";
-import Nilai from "./Nilai";
+import NilaiModal from "./NilaiModal";
 
-// let timer;
 export default function TantanganWaktu({ title, targetWaktu }) {
   const timer = useRef();
-  const [waktuDiMulai, setWaktuDiMulai] = useState(false);
-  const [waktuHabis, setWaktuHabis] = useState(false);
+  const dialog = useRef();
+
+  const [waktuTersisa, setWaktuTersisa] = useState(targetWaktu * 1000);
+
+  const waktuAktif = waktuTersisa > 0 && waktuTersisa < targetWaktu * 1000;
+
+  if (waktuTersisa <= 0) {
+    clearInterval(timer.current);
+    setWaktuTersisa(targetWaktu * 1000);
+    dialog.current.open();
+  }
 
   function handleStart() {
-    timer.current = setTimeout(() => {
-      setWaktuHabis(true);
-    }, targetWaktu * 1000);
-    setWaktuDiMulai(true);
+    timer.current = setInterval(() => {
+      setWaktuTersisa((prevWaktuTersisa) => prevWaktuTersisa - 10);
+    }, 10);
   }
 
   function handleStop() {
-    clearTimeout(timer.current);
+    clearInterval(timer.current);
+    dialog.current.open();
   }
   return (
     <>
-      {waktuHabis && <Nilai targetWaktu={targetWaktu} nilai="Lost" />}
+      <NilaiModal ref={dialog} targetWaktu={targetWaktu} nilai="Lost" />
       <section className="challenge">
         <h2>{title}</h2>
         <p className="challenge-time">
           {targetWaktu} second{targetWaktu > 1 ? "s" : ""}
         </p>
         <p>
-          <button onClick={waktuDiMulai ? handleStop : handleStart}>
-            {waktuDiMulai ? "Stop" : "Start"} Game
+          <button onClick={waktuAktif ? handleStop : handleStart}>
+            {waktuAktif ? "Stop" : "Start"} Game
           </button>
         </p>
-        <p className="{waktuDiMulai ? 'active' : undefined}">
-          {waktuDiMulai ? "Waktu Berjalan..." : "Waktu Belum Berjalan"}
+        <p className={waktuAktif ? "active" : undefined}>
+          {waktuAktif ? "Waktu Berjalan..." : "Waktu Belum Berjalan"}
         </p>
       </section>
     </>
